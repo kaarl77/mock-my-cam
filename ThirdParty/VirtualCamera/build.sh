@@ -48,6 +48,7 @@ build_slice() {
         Sources/SimCamSampleBufferDriver.m \
         Sources/SimCamCaptureShim.m \
         Sources/SimCamVisionShim.m \
+        Sources/SimCamMetadataShim.m \
         Sources/SimCamFakePhoto.m \
         Sources/SimCamSharedFrameReader.m
 }

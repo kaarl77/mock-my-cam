@@ -70,12 +70,10 @@ On first webcam use, macOS asks for camera permission (System Settings ▸ Priva
 
 ## Known limitations
 
-- **Metadata (QR/barcode) output not hooked yet.** The dylib now vends a synthetic
-  `AVCaptureDevice` and delivers frames through `AVCaptureVideoDataOutput` sample buffers
-  (Flutter, `react-native-vision-camera`, most camera/scanner apps) as well as
-  `AVCaptureVideoPreviewLayer`, `AVCapturePhotoOutput`, and `UIImagePickerController`.
-  Apps that scan codes via `AVCaptureMetadataOutput` (rather than reading the sample buffers
-  themselves) don't get synthetic metadata objects yet — that hook can be added next.
+- **Metadata output scans QR codes only.** Apps that scan via `AVCaptureMetadataOutput`
+  (e.g. expo-camera) receive QR codes decoded from the feed with CoreImage; other symbologies
+  (EAN, Code 128, PDF417, …) aren't produced on that path. Apps that decode the
+  `AVCaptureVideoDataOutput` sample buffers themselves (ZXing, ML Kit) can read any type.
 - **Camera permission prompt.** Because the app now drives a real `AVCaptureSession`, iOS
   shows its normal "… would like to access the Camera" prompt on first use. Tap **Allow** once;
   frames are delivered regardless of the outcome (there's no real hardware behind it).

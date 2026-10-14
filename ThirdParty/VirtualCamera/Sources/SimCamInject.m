@@ -22,9 +22,11 @@
 // feed it synthetic `CMSampleBuffer`s built from /tmp/SimCam.bgra (see
 // SimCamSampleBufferDriver).
 //
+// AVCaptureMetadataOutput: QR codes decoded from /tmp/SimCam.bgra are
+// delivered as metadata objects (see SimCamMetadataShim) — expo-camera and
+// other scanners that use the metadata path rather than sample buffers.
+//
 // Future hooks (deferred):
-//   - AVCaptureMetadataOutput → machine-readable-code (QR/barcode) objects for
-//     apps that scan via the metadata path rather than the sample buffers.
 //   - AVCaptureMovieFileOutput.startRecordingToOutputFileURL:... → recording.
 
 #import <Foundation/Foundation.h>
@@ -36,6 +38,7 @@
 #import "SimCamSampleBufferDriver.h"
 #import "SimCamCaptureShim.h"
 #import "SimCamVisionShim.h"
+#import "SimCamMetadataShim.h"
 #import "SimCamSharedFrameReader.h"
 #import "SimCamFakePhoto.h"
 
@@ -455,6 +458,10 @@ static void simcam_install(void) {
         // backend fails there) by serving those requests via CIDetector. Apps
         // like Flutter's mobile_scanner abort the whole camera on that failure.
         SimCamInstallVisionShim();
+
+        // Deliver QR codes to AVCaptureMetadataOutput delegates (expo-camera
+        // scans QR this way, not via sample buffers).
+        SimCamInstallMetadataShim();
 
         Class previewLayerClass = NSClassFromString(@"AVCaptureVideoPreviewLayer");
         if (previewLayerClass == nil) {

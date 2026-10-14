@@ -45,6 +45,7 @@ build_slice() {
         "$SRC/SimCamSampleBufferDriver.m" \
         "$SRC/SimCamCaptureShim.m" \
         "$SRC/SimCamVisionShim.m" \
+        "$SRC/SimCamMetadataShim.m" \
         "$SRC/SimCamFakePhoto.m" \
         "$SRC/SimCamSharedFrameReader.m"
 }
