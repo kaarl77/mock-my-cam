@@ -25,16 +25,24 @@ final class ViewController: UIViewController {
     }
 }
 
-final class AppDelegate: UIResponder, UIApplicationDelegate {
+// iOS 27 terminates apps that haven't adopted the UIScene lifecycle, so the
+// window is owned by a scene delegate (declared in Info.plist's scene manifest
+// under this Objective-C name) rather than the app delegate.
+@objc(SimProbeSceneDelegate)
+final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
-    func application(_ application: UIApplication,
-                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        let window = UIWindow(frame: UIScreen.main.bounds)
+
+    func scene(_ scene: UIScene,
+               willConnectTo session: UISceneSession,
+               options connectionOptions: UIScene.ConnectionOptions) {
+        guard let windowScene = scene as? UIWindowScene else { return }
+        let window = UIWindow(windowScene: windowScene)
         window.rootViewController = ViewController()
         window.makeKeyAndVisible()
         self.window = window
-        return true
     }
 }
+
+final class AppDelegate: UIResponder, UIApplicationDelegate {}
 
 UIApplicationMain(CommandLine.argc, CommandLine.unsafeArgv, nil, NSStringFromClass(AppDelegate.self))

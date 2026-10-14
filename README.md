@@ -31,7 +31,7 @@ menu-bar UI  →  DylibInstaller + SimulatorController (xcrun simctl)  ──inj
 ## Requirements
 
 - Apple Silicon Mac, macOS 14+
-- Xcode 16+ with an iOS Simulator runtime (tested on Xcode 26.5 / iOS 26.5)
+- Xcode 16+ with an iOS Simulator runtime (tested on Xcode 27.1 / iOS 27.0 and 27.1)
 
 ## Build & run
 

@@ -32,6 +32,23 @@
     <string>iphonesimulator</string>
     <key>UILaunchScreen</key>
     <dict/>
+    <key>UIApplicationSceneManifest</key>
+    <dict>
+        <key>UIApplicationSupportsMultipleScenes</key>
+        <false/>
+        <key>UISceneConfigurations</key>
+        <dict>
+            <key>UIWindowSceneSessionRoleApplication</key>
+            <array>
+                <dict>
+                    <key>UISceneConfigurationName</key>
+                    <string>Default</string>
+                    <key>UISceneDelegateClassName</key>
+                    <string>SimProbeSceneDelegate</string>
+                </dict>
+            </array>
+        </dict>
+    </dict>
     <key>NSCameraUsageDescription</key>
     <string>SimProbe shows a camera preview to verify MockMyCam injection.</string>
 </dict>
