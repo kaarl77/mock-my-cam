@@ -42,6 +42,10 @@ static BOOL gSimCamSuppressFormats = NO;
 - (NSArray<AVFrameRateRange *> *)videoSupportedFrameRateRanges { return _ranges; }
 - (AVMediaType)mediaType { return AVMediaTypeVideo; }
 - (NSString *)description { return @"<SimCamFakeFormat>"; }
+// Apps derive zoom from these (expo-camera: max^zoom); the real getters read
+// ivars our fake lacks. No optical zoom, so the range is exactly 1×.
+- (CGFloat)videoMaxZoomFactor { return 1.0; }
+- (CGFloat)videoZoomFactorUpscaleThreshold { return 1.0; }
 // AVFoundation pokes these simulator-internal getters during
 // -[AVCaptureDeviceInput initWithDevice:] (via defaultSimulatedAperture); the
 // real implementations read ivars our fake lacks and crash. Overriding
@@ -133,9 +137,46 @@ static AVCaptureDeviceFormat *SimCamSharedFakeFormat(void) {
 - (BOOL)hasTorch { return NO; }
 - (BOOL)hasFlash { return NO; }
 - (BOOL)isTorchModeSupported:(AVCaptureTorchMode)mode { return NO; }
+- (BOOL)isTorchAvailable { return NO; }
+- (BOOL)isFlashAvailable { return NO; }
+- (BOOL)isFocusPointOfInterestSupported { return NO; }
+- (BOOL)isExposurePointOfInterestSupported { return NO; }
+- (BOOL)isSmoothAutoFocusSupported { return NO; }
+- (BOOL)isLowLightBoostSupported { return NO; }
 - (CGFloat)videoZoomFactor { return 1.0; }
 - (CGFloat)minAvailableVideoZoomFactor { return 1.0; }
 - (CGFloat)maxAvailableVideoZoomFactor { return 1.0; }
+- (BOOL)isRampingVideoZoom { return NO; }
+
+// Setters camera libraries call unconditionally inside lockForConfiguration
+// (expo-camera sets videoZoomFactor on every session start). The real
+// implementations validate against hardware state our fake doesn't have and
+// throw ("Not supported by this device"), so they're accepted as no-ops.
+- (void)setVideoZoomFactor:(CGFloat)factor {}
+- (void)rampToVideoZoomFactor:(CGFloat)factor withRate:(float)rate {}
+- (void)cancelVideoZoomRamp {}
+- (AVCaptureFocusMode)focusMode { return AVCaptureFocusModeLocked; }
+- (void)setFocusMode:(AVCaptureFocusMode)mode {}
+- (void)setFocusPointOfInterest:(CGPoint)point {}
+- (void)setSmoothAutoFocusEnabled:(BOOL)enabled {}
+- (AVCaptureExposureMode)exposureMode { return AVCaptureExposureModeLocked; }
+- (void)setExposureMode:(AVCaptureExposureMode)mode {}
+- (void)setExposurePointOfInterest:(CGPoint)point {}
+- (void)setExposureTargetBias:(float)bias completionHandler:(void (^)(CMTime))handler {
+    if (handler) handler(kCMTimeInvalid);
+}
+- (AVCaptureWhiteBalanceMode)whiteBalanceMode { return AVCaptureWhiteBalanceModeLocked; }
+- (void)setWhiteBalanceMode:(AVCaptureWhiteBalanceMode)mode {}
+- (AVCaptureTorchMode)torchMode { return AVCaptureTorchModeOff; }
+- (void)setTorchMode:(AVCaptureTorchMode)mode {}
+- (BOOL)setTorchModeOnWithLevel:(float)level error:(NSError **)outError {
+    if (outError) *outError = nil;
+    return YES;
+}
+- (void)setSubjectAreaChangeMonitoringEnabled:(BOOL)enabled {}
+- (void)setAutomaticallyEnablesLowLightBoostWhenAvailable:(BOOL)enabled {}
+- (void)setAutomaticallyAdjustsVideoHDREnabled:(BOOL)enabled {}
+- (void)setVideoHDREnabled:(BOOL)enabled {}
 
 @end
 
@@ -225,6 +266,14 @@ void SimCamInstallCaptureShim(void) {
         SimCamReplaceInstanceMethod(discoveryClass, @selector(devices),
             ^NSArray *(id self) { return @[fake]; });
     }
+
+    // iOS 17 preferred-camera entry points. Unhooked, they return the
+    // simulator's own non-functional AVCaptureFigVideoDevice, which apps
+    // (expo-camera) may pick over the discovery result.
+    SimCamReplaceClassMethod(deviceClass, @selector(systemPreferredCamera),
+        ^AVCaptureDevice *(id self) { return fake; });
+    SimCamReplaceClassMethod(deviceClass, @selector(userPreferredCamera),
+        ^AVCaptureDevice *(id self) { return fake; });
 
     // --- AVCaptureSession: accept the synthetic input and "run" without a
     //     real capture backend. The synthetic device has no real ports, so we
